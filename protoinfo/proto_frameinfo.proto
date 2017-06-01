@@ -1,0 +1,358 @@
+syntax = "proto3";
+
+package protoinfo;
+
+option optimize_for = SPEED;
+
+// TODO: use google/protobuf/wrappers.proto when it be reasonably straigthforward
+message Int32Value {
+  int32 value = 1;
+}
+
+// TODO: use google/protobuf/wrappers.proto when it be reasonably straigthforward
+message DoubleValue {
+  double value = 1;
+}
+
+// Report is a measurement from a modem device, like ST600, MT4000, etc. A report has a type, and is originated from a
+// single frame that was measured in a specific place and time (so it has position and it's timestamped).
+message Report {
+  // report_id is the id of the report, a non-empty string, that identifies uniquely this report.
+  string report_id = 12;
+
+  // installation_id is the id of the installation associated to this report.
+  int32 installation_id = 18;
+
+  // asset_id is the id of the asset associated to this report.
+  int32 asset_id = 13;
+
+  // dev_id is the device ID, a non-empty string, with a maximum length of 20, that uniquely identifies a device.
+  string dev_id = 14;
+
+  // server_timestamp is the report creation timestamp in the server, in seconds from the epoch.
+  // This value can diverge significantly from the real timestamp if the frame was buffered in the device prior
+  // to its transmission to the server.
+  int64 server_timestamp = 15;
+
+  // frame_id is the ID of the frame, a non-empty string, source of the report.
+  string frame_id = 16;
+
+  // ReportType identifies the type of report. Unmapped report types are typed with Unknown.
+  enum ReportType {
+    // Unknown is used as type of unmapped events
+    Unknown = 0;
+
+    // PanicButton occurs when the panic button is pressed
+    PanicButton = 1;
+
+    // IgnitionOn occurs when the ignition is on.
+    IgnitionOn = 2;
+
+    // IgnitionOff occurs when the ignition is off.
+    IgnitionOff = 3;
+
+    // ModemOff occurs when the asset stands still, the ignition is off and a report by time is sent.
+    ModemOff = 4;
+
+    // TimeExpired occurs when the asset stands still, the ignition is on and a report by time is sent.
+    TimeExpired = 5;
+
+    // WayPoint occurs when the asset is moving and the position is reported (this could be by time, by distance
+    // or using another criteria).
+    WayPoint = 6;
+
+    // BackupBattery occurs when the backup battery starts working.
+    BackupBattery = 7;
+
+    // MainBattery occurs when the main battery starts working.
+    MainBattery = 8;
+
+    // OverSpeed occurs when the asset exceeds a certain speed (configured in the device).
+    OverSpeed = 9;
+
+    // NormalSpeed occurs when the asset goes back to a certain speed, considered normal (configured in the device).
+    NormalSpeed = 10;
+
+    // HarshAcceleration occurs when when the driver applies more force than normal to the asset's accelerator.
+    HarshAcceleration = 11;
+
+    // HarshBraking occurs when when the driver applies more force than normal to the asset's brake.
+    HarshBraking = 12;
+
+    // Shocked occurs when a shock impact is given to the asset.
+    Shocked = 13;
+
+    // Collision occurs when a collision happened to the asset.
+    Collision = 14;
+
+    // SharpTurn occurs when the driver changes the direction of the asset suddenly.
+    SharpTurn = 15;
+
+    // JammingDetected occurs when the device detects a Jamming signal.
+    JammingDetected = 16;
+
+    // ExternalData occurs when the device reports external data (from another device, usually CAN data)
+    ExternalData = 17;
+
+    // Tow occurs when the asset is being towed
+    Tow = 18;
+
+    // Turn occurs when the asset turns around a corner
+    Turn = 19;
+
+    // Motion occurs when the asset is in motion and the ignition is off but isn't being towed (or if the ignition status is unknown)
+    Motion = 20;
+
+    // BatteryAlert occurs when the asset battery voltage is in a specific range, usually a low one and the user
+    // should be notified.
+    BatteryAlert = 21;
+
+    //Occurs when the dispositive is disconnected from backup battery.
+    BackupBatteryDisconnected = 22;
+
+    // 23: Occurs when the dispositive is disconnected from main battery.
+    MainBatteryDisconnected = 23;
+
+    // 24: Ocurrs when the asset stands still, the ignition is off, a report by time is sent and the SwitchStart is on
+    ParkingModeNextIgnitionCut = 24;
+
+    // 25: Ocurrs when the asset stands still, the ignition is on, a report by time is sent and the SwitchStart is on
+    DrivingModeNextIgnitionCut = 25;
+
+    // 26: Occurs when the asset is moving, the position is reported and the SwitchStart is on
+    DistanceModeNextIgnitionCut = 26;
+
+    // 27: Occurs when the asset turns around a corner and the SwitchStart is on
+    AngleModeNextIgnitionCut = 27;
+
+    // 28: Occurs when the dispositive is in Deep Sleep Mode
+    EnterDeepSleepMode = 28;
+
+    // 29: Occurs when the dispositive exit form Deep Sleep Mode
+    ExitDeepSleepMode = 29;
+
+  }
+  // type is the type of the report.
+  ReportType type = 1;
+
+  // timestamp is the timestamp when the measurement was made (in the device), in seconds from the epoch.
+  // This value can diverge significantly from the server timestamp if the frame was buffered in the device prior
+  // to its transmission to the server.
+  int64 timestamp = 2;
+
+  // latitude is the latitude in decimal degrees. Optional field.
+  double latitude = 3;
+
+  // longitude is the longitude in decimal degrees. Optional field.
+  double longitude = 4;
+
+  // speed is the speed of the asset in km per hour. Optional field.
+  double speed = 5;
+
+  // heading is the orientation of the asset in sexagesimal degrees. Optional field.
+  double heading = 6;
+
+  // gps_fixed indicates if the GPS is fixed (check https://en.wikipedia.org/wiki/Fix_(position)). Optional field.
+  bool gps_fixed = 7;
+
+  // satellites is the number of visible satellites. Optional field.
+  Int32Value satellites = 8;
+
+  // power_volt is the voltage of the main power. Optional field.
+  DoubleValue power_volt = 9;
+
+  // backup_volt is the voltage of the backup power. Optional field.
+  DoubleValue backup_volt = 10;
+
+  //Acumulative count of number of minutes of the asset with IGNITION ON 
+  Int64Value HourMeter = 12; 
+
+  // can_squarell is a CAN measurement from a Squarell Solid/Flex device. Optional field.
+  CANSquarell can_squarell = 11;
+
+  // tags is a collection of free form strings, used as metadata. For example, a frame infor could be tagged
+  // with "smoke-test", indicating that is a testing frame, and should be discarded by the consumers. Optional field.
+  repeated string tags = 17;
+}
+
+// FMS1 is a Squarell FMS1 message.
+message FMS1 {
+  // Odometer, in km.
+  double odometer = 1;
+
+  // Total Fuel, in liters.
+  double total_fuel = 2;
+
+  // Engine Hours, in hours.
+  double engine_hours = 3;
+
+  // Actual Speed, in km/h.
+  double actual_speed = 4;
+
+  // Actual Engine Speed, in RPM.
+  double actual_engine_speed = 5;
+
+  // Actual Engine Torque, % of maximum.
+  double actual_engine_torque = 6;
+
+  // Kickdown Switch.
+  bool kickdown_switch = 7;
+
+  // Accelerator Pedal Position, %.
+  double accelerator_pedal_position = 8;
+
+  // Brake Switch.
+  bool brake_switch = 9;
+
+  // Clutch Switch.
+  bool clutch_switch = 10;
+
+  // Cruise Active.
+  bool cruise_active = 11;
+
+  // PTOType is the type of PTOActive
+  enum PTOType {
+    Disabled = 0;
+    Hold = 1;
+    RemoteHold = 2;
+    Standby = 3;
+    RemoteStandby = 4;
+    Set = 5;
+    DecelerateCoast = 6;
+    Resume = 7;
+    Accelerate = 8;
+    AcceleratorOverride = 9;
+    PreprogramedSetSpeed = 10;
+    PTOSetSpeedMemory1 = 11;
+    PTOSetSpeedMemory2 = 12;
+    NotDefined = 13;
+    NotAvailable = 14;
+  }
+  // PTO Active.
+  PTOType pto_active = 12;
+
+  // Fuel Level, %.
+  double fuel_level = 13;
+
+  // Engine Temperature, in celsius degrees.
+  double engine_temperature = 14;
+
+  // Turbo Pressure, in bar.
+  double turbo_pressure = 15;
+
+  // Axle Weight 0, in kg.
+  double axle_weight_0 = 16;
+
+  // Axle Weight 1, in kg.
+  double axle_weight_1 = 17;
+
+  // Axle Weight 2, in kg.
+  double axle_weight_2 = 18;
+
+  // Axle Weight 3, in kg.
+  double axle_weight_3 = 19;
+
+  // Service Distance, in km.
+  double service_distance = 20;
+}
+
+// FMS4 is a Squarell FMS4 message.
+message FMS4 {
+  // DurationDriving, in seconds.
+  uint64 duration_driving = 1;
+
+  // DurationCruiseActive, in seconds.
+  uint64 duration_cruise_active = 2;
+
+  // IdlingTime, in seconds.
+  uint64 idling_time = 3;
+
+  // FuelUsedDuringIdle, in liters.
+  double fuel_used_during_idle = 4;
+
+  // DurationOfPTO, in seconds.
+  uint64 duration_of_pto = 5;
+
+  // FuelUsedDuringPTO, in liters.
+  double fuel_used_during_pto = 6;
+
+  // NumberOfBrakeApplications, times.
+  uint64 number_of_brake_applications = 7;
+
+  // NumOfBrakeApps > THR Harsh Brk.
+  uint64 num_of_brake_apps = 8;
+
+  // NumOfClutchPresses, times.
+  uint64 num_of_clutch_presses = 9;
+
+  // IdleDuration > THR Idle Dura, times.
+  uint64 idle_duration = 10;
+
+  // DurationEngineTorque > THR % Trq 4, in seconds.
+  uint64 duration_engine_torque = 11;
+
+  // DurationSpeed > THR Spd 4, in seconds.
+  double duration_speed = 12;
+
+  // DurationRPM > THR RPM 4, in seconds.
+  uint64 duration_rpm = 13;
+
+  // DurationOfAcceleration > THR Harsh Acc, in seconds.
+  uint64 duration_of_acceleration = 14;
+}
+
+// CANSquarell is a measurement from a Squarell Solid/Flex device (a CAN device).
+message CANSquarell {
+  // FMS1 is a FMS1 message. Optional field.
+  FMS1 fms1 = 1;
+
+  // 2 and 3 reserved for FMS2 and FMS3 messages.
+
+  // FMS4 is a FMS4 message. Optional field.
+  FMS4 fms4 = 4;
+}
+
+// FrameInfo holds all the information about the parsing of a raw frame.
+message FrameInfo {
+  // frame_id is the ID of the frame, a non-empty string, source of the report.
+  string frame_id = 1;
+
+  // server_timestamp is the report creation timestamp in the server, in seconds from the epoch.
+  // This value can diverge significantly from the real timestamp if the frame was buffered in the device prior
+  // to its transmission to the server.
+  int64 server_timestamp = 2;
+
+  // adapter identifies the adapter that received(or sent) the frame.
+  string adapter = 3;
+
+  // received indicates if the frame was received (true) from a device, or was sent (false) to a device.
+  bool received = 4;
+
+  // data is the raw frame itself.
+  bytes data = 5;
+
+  // Format
+  enum Format {
+    // Raw indicates that the data bytes are "as-is".
+    Raw = 0;
+
+    // Hex indicates that the data bytes are hex encoded.
+    Hex = 1;
+  }
+  // data_format is the format of the data field.
+  Format data_format = 6;
+
+  // dev_id is the device ID, a non-empty string, with a maximum length of 20, that uniquely identifies a device.
+  // Optional field (if there was a parsing error, this field is null, otherwise it should be present).
+  string dev_id = 7;
+
+  // parsing_error holds an error in the parsing of the raw frame. Optional field.
+  string parsing_error = 8;
+
+  // reports is the list of reports extracted from the source raw frame. Optional field.
+  repeated Report reports = 9;
+
+  // tags is a collection of free form strings, used as metadata. For example, a frame infor could be tagged
+  // with "smoke-test", indicating that is a testing frame, and should be discarded by the consumers. Optional field.
+  repeated string tags = 10;
+}
